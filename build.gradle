@@ -1,0 +1,29 @@
+apply plugin: 'java'
+apply plugin: 'application'
+mainClassName = "MyFirstProgram"
+
+repositories{
+    mavenCentral()
+}
+
+dependencies{
+    implementation 'org.testng:testng:6.9.10'
+    implementation 'org.seleniumhq.selenium:selenium-java:2.48.2'
+    compile("org.hamcrest:java-hamcrest:2.0.0.0")
+}
+
+test {
+    useTestNG{
+        suites 'src/test/resources/testngGroups.xml'
+    }
+    if (project.hasProperty('browser')){
+        systemProperty 'browser', "${browser}"
+    }
+    if (project.hasProperty('target')){
+        systemProperty 'tarset', "${target}"
+    }
+    if (project.hasProperty('verifyUI')){
+        systemProperty 'verifyUI', "${verifyUI}"
+    }
+
+}
