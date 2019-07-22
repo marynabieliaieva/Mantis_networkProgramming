@@ -13,42 +13,61 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 public class ApplicationManager {
-  WebDriver wd;
+  private WebDriver wd;
   private final Properties properties;
 
   private String browser;
+  private String registrationHelper;
 
 
   public ApplicationManager(String browser) {
     this.browser = browser;
     properties = new Properties();
-
   }
 
   public void init() throws IOException, InterruptedException {
     String target = System.getProperty("target", "local");
     properties.load(new FileReader(new File(String.format("src/test/resources/%s.properties", target))));
-
-
-    if (browser.equals(BrowserType.FIREFOX)) {
-      wd = new FirefoxDriver();
-    } else if (browser.equals(BrowserType.CHROME)) {
-      wd = new ChromeDriver();
-    } else if (browser.equals(BrowserType.IE)) {
-      wd = new InternetExplorerDriver();
-    }
-
-    wd.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
-    //wd.get("https://login.szn.cz/");
-    wd.get(properties.getProperty("web.baseUrl"));
-    wd.manage().window().maximize();
-
   }
 
 
   public void stop() {
-    wd.quit();
+    if(wd != null){
+      wd.quit();
+    }
+  }
+
+  public HttpSession newSession() {
+    return new HttpSession(this);
   }
 
 
+  public String getProperty(String key) {
+    if (registrationHelper == null){
+      registrationHelper =  properties.getProperty(key);
+    }
+    return registrationHelper;
+  }
+
+  public RegistrationHelper registration() {
+    return new RegistrationHelper(this);
+  }
+
+  public WebDriver getDriver() {
+    if (wd == null) {
+      if (browser.equals(BrowserType.FIREFOX)) {
+        wd = new FirefoxDriver();
+      } else if (browser.equals(BrowserType.CHROME)) {
+        wd = new ChromeDriver();
+      } else if (browser.equals(BrowserType.IE)) {
+        wd = new InternetExplorerDriver();
+      }
+      wd.manage().timeouts().implicitlyWait(20, TimeUnit.SECONDS);
+      //wd.get("https://login.szn.cz/");
+      wd.get(properties.getProperty("web.baseUrl"));
+      wd.manage().window().maximize();
+
+    }
+    return wd;
+  }
 }
