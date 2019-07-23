@@ -14,19 +14,22 @@ import static org.testng.AssertJUnit.assertTrue;
 
 public class RegistrationTests extends TestBase {
 
-  @BeforeMethod
+  //@BeforeMethod - because of external mail server
   public void startMailServer() {
     app.mail().start();
   }
 
 
   @Test
-  public void testRegistration() throws IOException, MessagingException {
-    String email = "user1@localhost.localdoamin";
-    String user = "user1";
+  public void testRegistration() throws IOException, MessagingException, javax.mail.MessagingException, InterruptedException {
+    long now = System.currentTimeMillis();
+    String email = String.format("user%s@localhost.localdoamin", now);
+    String user = String.format("user%s", now);
     String password = "password";
+    app.james().createUser(user, password);
     app.registration().start(user, email);
-    List<MailMessage> mailMessages = app.mail().waitForMAil(2, 10000);
+    //List<MailMessage> mailMessages = app.mail().waitForMAil(2, 10000); - because of external mail server
+    List<MailMessage> mailMessages = app.james().waiForMAil(user, password, 60000);
     String confirmationLink = findConfirmationLink(mailMessages, email);
     app.registration().finish(confirmationLink, password);
     assertTrue(app.newSession().login(user, password));
@@ -38,7 +41,7 @@ public class RegistrationTests extends TestBase {
     return regex.getText(mailMessage.text);
   }
 
-  @AfterMethod(alwaysRun = true)
+  //@AfterMethod(alwaysRun = true) - because of external mail server
   public void stopMailServer() {
     app.mail().stop();
   }
